@@ -1,0 +1,39 @@
+if($hospital_id=="All"){
+      $allData = Booking::whereBetween('booking_date', array($from_date, $upto_date))->where('status','=','Pending')->get();
+    }else{
+     $allData = Booking::whereBetween('booking_date', array($from_date, $upto_date))->where('clinic_id',$hospital_id)->where('status','=','Pending')->get();
+    }
+
+            $newarray[]=array('SL No.','Id','Clinic Name','Doctor Name','Client Name','Client Mobile', 'Client Email','Patient Name','Booking Date','Booking Time','Reason');
+
+    $count=1;
+     foreach($allData as $data){
+     $client = Client::find($data->client_id);
+    $mobile =$client->mobile;
+    $email =$client->email;
+
+         $newarray[] =array(
+             'SL No.'=>$count,
+             'Id'=>$data->id,
+             'Clinic Name'=>$data->clinic_name,
+             'Doctor Name'=>$data->doctor_name,
+             'Client Name'=>$data->client_name,
+             'Client Mobile'=>$mobile,
+             'Client Email'=>$email,
+             'Patient Name'=>$data->patient_name,
+             'Booking Date'=>$data->date_string,
+             'Booking Time'=>$data->booking_time,
+             'Reason'=>$data->reason_booking,
+    //                --------expirement-----------
+
+         );
+        $count+=1;
+
+}
+
+        Excel::Create('Pending Booking',function($exel) use ($newarray)[
+            $exel->setTitle('Pending Booking');
+            $exel->sheet('Pending Booking',function($sheet) use ($newarray){
+                $sheet->fromArray($newarray,null,'A1',false,false);
+            });
+        ])->export('csv');
